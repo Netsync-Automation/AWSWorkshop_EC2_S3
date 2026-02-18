@@ -281,9 +281,7 @@ We'll create a bucket policy that explicitly allows your SSO role but leaves the
     {
       "Sid": "AllowSSORole",
       "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::YOUR-ACCOUNT-ID:role/aws-reserved/sso.amazonaws.com/YOUR-SSO-ROLE-NAME"
-      },
+      "Principal": "*",
       "Action": [
         "s3:GetObject",
         "s3:PutObject",
@@ -293,7 +291,12 @@ We'll create a bucket policy that explicitly allows your SSO role but leaves the
       "Resource": [
         "arn:aws:s3:::YOUR-BUCKET-NAME",
         "arn:aws:s3:::YOUR-BUCKET-NAME/*"
-      ]
+      ],
+      "Condition": {
+        "ArnLike": {
+          "aws:PrincipalArn": "arn:aws:iam::YOUR-ACCOUNT-ID:role/aws-reserved/sso.amazonaws.com/YOUR-SSO-ROLE-NAME"
+        }
+      }
     },
     {
       "Sid": "DenyAllOthers",
@@ -305,7 +308,7 @@ We'll create a bucket policy that explicitly allows your SSO role but leaves the
         "arn:aws:s3:::YOUR-BUCKET-NAME/*"
       ],
       "Condition": {
-        "StringNotLike": {
+        "ArnNotLike": {
           "aws:PrincipalArn": [
             "arn:aws:iam::YOUR-ACCOUNT-ID:role/aws-reserved/sso.amazonaws.com/YOUR-SSO-ROLE-NAME",
             "arn:aws:iam::YOUR-ACCOUNT-ID:root"
@@ -328,14 +331,14 @@ We'll create a bucket policy that explicitly allows your SSO role but leaves the
 Click **Save changes**
 
 > **What this does:**
-> - Statement 1: Explicitly allows your SSO role to perform S3 operations
-> - Statement 2: Denies everyone else — including the EC2 role
+> - Statement 1: Uses `Principal: "*"` with an `ArnLike` condition — this correctly matches your SSO assumed-role session, which a direct `Principal` ARN cannot do
+> - Statement 2: Denies everyone whose `aws:PrincipalArn` doesn't match — including the EC2 role
 > - The EC2 role has `AmazonS3FullAccess` via IAM, but the bucket policy **Deny** overrides it
 > - This demonstrates that **explicit Deny always wins**, even over IAM Allow
 
-> **Scaling to a whole team:** To grant access to everyone in an SSO group, replace the specific role ARN with a wildcard on the permission set name:
+> **Scaling to a whole team:** To grant access to everyone in an SSO group, use a wildcard on the permission set name:
 > ```json
-> "aws:PrincipalArn": "arn:aws:iam::YOUR-ACCOUNT-ID:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_YourPermissionSet_*"
+> "ArnLike": { "aws:PrincipalArn": "arn:aws:iam::YOUR-ACCOUNT-ID:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_YourPermissionSet_*" }
 > ```
 > Any member of the SSO group assigned that permission set will match. Run `aws iam list-roles --query "Roles[?contains(RoleName, 'AWSReservedSSO')].RoleName"` to find the exact permission set name in your account.
 
@@ -412,12 +415,7 @@ Now let's grant access to the EC2 instance role by updating the bucket policy:
     {
       "Sid": "AllowSSOAndEC2Role",
       "Effect": "Allow",
-      "Principal": {
-        "AWS": [
-          "arn:aws:iam::YOUR-ACCOUNT-ID:role/aws-reserved/sso.amazonaws.com/YOUR-SSO-ROLE-NAME",
-          "arn:aws:iam::YOUR-ACCOUNT-ID:role/Workshop-EC2-S3-SSM-Role"
-        ]
-      },
+      "Principal": "*",
       "Action": [
         "s3:GetObject",
         "s3:PutObject",
@@ -427,7 +425,15 @@ Now let's grant access to the EC2 instance role by updating the bucket policy:
       "Resource": [
         "arn:aws:s3:::YOUR-BUCKET-NAME",
         "arn:aws:s3:::YOUR-BUCKET-NAME/*"
-      ]
+      ],
+      "Condition": {
+        "ArnLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::YOUR-ACCOUNT-ID:role/aws-reserved/sso.amazonaws.com/YOUR-SSO-ROLE-NAME",
+            "arn:aws:iam::YOUR-ACCOUNT-ID:role/Workshop-EC2-S3-SSM-Role"
+          ]
+        }
+      }
     },
     {
       "Sid": "DenyAllOthers",
@@ -439,7 +445,7 @@ Now let's grant access to the EC2 instance role by updating the bucket policy:
         "arn:aws:s3:::YOUR-BUCKET-NAME/*"
       ],
       "Condition": {
-        "StringNotLike": {
+        "ArnNotLike": {
           "aws:PrincipalArn": [
             "arn:aws:iam::YOUR-ACCOUNT-ID:role/aws-reserved/sso.amazonaws.com/YOUR-SSO-ROLE-NAME",
             "arn:aws:iam::YOUR-ACCOUNT-ID:role/Workshop-EC2-S3-SSM-Role",
