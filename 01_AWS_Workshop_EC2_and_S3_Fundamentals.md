@@ -238,15 +238,23 @@ The output will look like this:
 }
 ```
 
-**Copy the base role ARN** — strip the session suffix (everything after the role name):
+Note the role name from the `Arn` field (e.g., `AWSReservedSSO_YourPermissionSet_xxxx`), then get the **exact IAM role ARN** using:
+
+```bash
+aws iam get-role \
+  --role-name AWSReservedSSO_YourPermissionSet_xxxx \
+  --query Role.Arn \
+  --output text
+```
+
+This returns the full ARN you need for the bucket policy, for example:
 
 ```
-arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_YourPermissionSet_xxxx
+arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_YourPermissionSet_xxxx
 ```
 
-> **Tip:** You can also find this in **IAM Console → Roles → search for `AWSReservedSSO`**
-
-> **What this shows:** Your SSO session is backed by an IAM role AWS assumes on your behalf. This is the principal we'll use in the bucket policy — no long-lived credentials, no IAM users needed.
+> **Why not use the ARN from `get-caller-identity` directly?**
+> That output shows an `sts` assumed-role session ARN, not the IAM role ARN. The path may also include a region segment (e.g., `/us-west-2/`) depending on where your IAM Identity Center is hosted — `get-role` gives you the exact correct value.
 
 ---
 
