@@ -132,7 +132,7 @@ aws ec2 describe-instances \
 }
 ```
 
-### Bucket Policy — SSO Role and EC2 Role with Deny
+### Bucket Policy — SSO Role and EC2 Role
 
 ```json
 {
@@ -141,33 +141,14 @@ aws ec2 describe-instances \
     {
       "Sid": "AllowSpecificPrincipals",
       "Effect": "Allow",
-      "Principal": "*",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_YourPermissionSet_xxxx",
+          "arn:aws:iam::123456789012:role/Workshop-EC2-S3-SSM-Role"
+        ]
+      },
       "Action": ["s3:GetObject", "s3:PutObject", "s3:ListBucket", "s3:DeleteObject"],
-      "Resource": ["arn:aws:s3:::bucket-name", "arn:aws:s3:::bucket-name/*"],
-      "Condition": {
-        "ArnLike": {
-          "aws:PrincipalArn": [
-            "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_YourPermissionSet_xxxx",
-            "arn:aws:iam::123456789012:role/Workshop-EC2-S3-SSM-Role"
-          ]
-        }
-      }
-    },
-    {
-      "Sid": "DenyAllOthers",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:*",
-      "Resource": ["arn:aws:s3:::bucket-name", "arn:aws:s3:::bucket-name/*"],
-      "Condition": {
-        "ArnNotLike": {
-          "aws:PrincipalArn": [
-            "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_YourPermissionSet_xxxx",
-            "arn:aws:iam::123456789012:role/Workshop-EC2-S3-SSM-Role",
-            "arn:aws:iam::123456789012:root"
-          ]
-        }
-      }
+      "Resource": ["arn:aws:s3:::bucket-name", "arn:aws:s3:::bucket-name/*"]
     }
   ]
 }
