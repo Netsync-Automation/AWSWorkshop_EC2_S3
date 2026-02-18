@@ -9,10 +9,10 @@
 ### Part 1: EC2 Instance Setup (30 minutes)
 
 1. Launch EC2 instance with IAM role (S3 Full Access + SSM)
-2. Configure security group for internal access only
-3. Create SSH key pair and connect via SSH
-4. Connect via AWS Systems Manager (SSM) — no keys needed
-5. Install AWS CLI and test S3 access
+2. Configure security group for internal SSH access only (no public IP)
+3. Create SSH key pair for on-prem connections
+4. Connect via AWS Systems Manager (SSM) — no keys, no public IP needed
+5. Test S3 access via CloudShell
 
 ### Part 2: S3 Bucket and Access Control (30 minutes)
 
@@ -72,7 +72,7 @@ chmod 400 ~/Downloads/workshop-keypair.pem
 
 1. Navigate to **EC2 Console → Security Groups → Create security group**
 2. Name: `Workshop-Internal-Access-SG`
-3. Description: `Allow access from internal networks only`
+3. Description: `Allow SSH from internal network only`
 4. VPC: Select your VPC
 
 **Inbound rules:**
@@ -81,17 +81,15 @@ chmod 400 ~/Downloads/workshop-keypair.pem
 |------|------|------|--------|-------------|
 | 1 | SSH | 22 | `YOUR-INTERNAL-CIDR-1` | SSH from internal network 1 |
 | 2 | SSH | 22 | `YOUR-INTERNAL-CIDR-2` | SSH from internal network 2 |
-| 3 | All traffic | All | `YOUR-INTERNAL-CIDR-1` | All traffic from internal network 1 |
-| 4 | All traffic | All | `YOUR-INTERNAL-CIDR-2` | All traffic from internal network 2 |
 
 **Outbound rules:** Leave default (all traffic allowed)
 
 Click **Create security group**
 
 > **What this does:**
-> - Restricts SSH and all other access to internal IP ranges only
-> - No public internet access to the instance
-> - Follows security best practice of least privilege
+> - Allows SSH only from your internal network ranges — no public internet exposure
+> - SSM connections don't require any inbound rules, so no additional ports needed
+> - Port 22 can be removed entirely if your team uses SSM exclusively
 
 ---
 
@@ -104,8 +102,8 @@ Click **Create security group**
 5. Key pair: Select `workshop-keypair`
 6. Network settings → Click **Edit**:
    - Select your VPC
-   - Select a subnet
-   - Auto-assign public IP: **Enable**
+   - Select a private subnet
+   - Auto-assign public IP: **Disable**
    - Firewall: Select existing security group → `Workshop-Internal-Access-SG`
 7. Advanced details:
    - Scroll down to **IAM instance profile**
@@ -114,8 +112,12 @@ Click **Create security group**
 
 Wait 2–3 minutes for the instance to reach "Running" state and pass status checks.
 
-> **Note about Public IP for SSM:**
-> A public IP allows the instance to reach SSM endpoints over the internet. For production environments, you can use VPC endpoints (AWS PrivateLink) to keep all SSM traffic private without needing a public IP.
+> **No public IP — how does SSM work?**
+> SSM Session Manager requires the instance to reach SSM service endpoints. Without a public IP this works via either:
+> - **NAT Gateway** in your VPC (outbound internet through NAT)
+> - **VPC Endpoints** for SSM (recommended for production — keeps all traffic private)
+>
+> Check with your network team which is in place. If neither exists, SSM won't connect and SSH from on-prem will be the only option.
 
 ---
 
