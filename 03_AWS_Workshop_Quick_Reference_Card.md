@@ -9,12 +9,12 @@
 ### SSH Connection
 
 ```bash
-# Mac/Linux
+# Mac/Linux — connect to private IP (must be on internal network or VPN)
 chmod 400 /path/to/workshop-keypair.pem
-ssh -i /path/to/workshop-keypair.pem ec2-user@PUBLIC-IP-ADDRESS
+ssh -i /path/to/workshop-keypair.pem ec2-user@PRIVATE-IP
 
 # Windows PowerShell (with OpenSSH)
-ssh -i C:\path\to\workshop-keypair.pem ec2-user@PUBLIC-IP-ADDRESS
+ssh -i C:\path\to\workshop-keypair.pem ec2-user@PRIVATE-IP
 ```
 
 ### SSM Connection

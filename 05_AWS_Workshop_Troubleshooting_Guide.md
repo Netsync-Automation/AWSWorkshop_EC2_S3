@@ -26,12 +26,12 @@ aws ec2 describe-instances \
 # Get current public IP (changes on stop/start)
 aws ec2 describe-instances \
   --instance-ids i-XXXXX \
-  --query 'Reservations[0].Instances[0].PublicIpAddress'
+  --query 'Reservations[0].Instances[0].PrivateIpAddress'
 ```
 
 - Ensure port 22 is open for `YOUR-INTERNAL-CIDR-1` or `YOUR-INTERNAL-CIDR-2`
-- If stopped, start it and wait 2–3 minutes
-- Use Elastic IP for a persistent address
+- Confirm you are on the internal network or connected via VPN
+- If not on the internal network, use SSM Session Manager instead
 
 ---
 

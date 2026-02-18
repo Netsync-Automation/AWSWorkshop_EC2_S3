@@ -121,36 +121,42 @@ Wait 2–3 minutes for the instance to reach "Running" state and pass status che
 
 ---
 
-### Step 5: Connect via SSH (5 minutes)
+### Step 5: Connect via SSH from On-Prem (5 minutes)
 
-**Get Instance Details:**
+Since there's no public IP, SSH works only from your internal network directly to the instance's **private IP**.
+
+**Get the private IP:**
 
 1. Navigate to **EC2 Console → Instances**
 2. Select your instance: `workshop-data-eng-demo`
-3. Copy the **Public IPv4 address** (e.g., `54.123.45.67`)
+3. Copy the **Private IPv4 address** (e.g., `10.x.x.x`)
 
 **Connect:**
 
 ```bash
 # Mac/Linux
-ssh -i ~/Downloads/workshop-keypair.pem ec2-user@54.123.45.67
+ssh -i ~/Downloads/workshop-keypair.pem ec2-user@PRIVATE-IP
 
 # Windows PowerShell (with OpenSSH)
-ssh -i C:\Users\YourName\Downloads\workshop-keypair.pem ec2-user@54.123.45.67
+ssh -i C:\Users\YourName\Downloads\workshop-keypair.pem ec2-user@PRIVATE-IP
 ```
 
 **Windows (PuTTY):**
 
 1. Open PuTTY
-2. Host Name: `ec2-user@54.123.45.67`
+2. Host Name: `ec2-user@PRIVATE-IP`
 3. Connection → SSH → Auth → Browse for your `.ppk` file
 4. Click **Open**
 
 If prompted about host authenticity, type `yes` and press Enter.
 
+> **Must be on the internal network** — this only works if you're connected via VPN or on-prem. If you're not on the internal network, use SSM (Step 6) instead.
+
 ---
 
-### Step 6: Connect via Systems Manager — Alternative Method (3 minutes)
+### Step 6: Connect via Systems Manager — Preferred Method (3 minutes)
+
+SSM Session Manager is the recommended connection method — no public IP, no open ports, works from anywhere with AWS console access.
 
 1. Navigate to **EC2 Console → Instances**
 2. Select your instance: `workshop-data-eng-demo`
@@ -160,18 +166,17 @@ If prompted about host authenticity, type `yes` and press Enter.
 
 You should see a terminal session open in your browser.
 
-> **Why SSM matters:**
-> - No SSH keys required
-> - No open SSH ports needed (port 22 can be closed)
-> - All connections logged in CloudTrail
-> - Works from anywhere with AWS console access
+> **Why SSM is preferred over SSH here:**
 >
 > | | SSH | SSM |
 > |---|---|---|
+> | Requires public IP | No (internal only) | No |
 > | Keys required | Yes | No |
-> | Open ports | Port 22 | None |
+> | Open inbound ports | Port 22 | None |
 > | Audit trail | Manual | CloudTrail |
-> | Access from | Network only | Anywhere (console) |
+> | Works without VPN | No | Yes (via console) |
+>
+> If SSM fails to connect, verify the instance has outbound access to SSM endpoints (via NAT Gateway or VPC Endpoints) and that the `Workshop-EC2-S3-SSM-Role` is attached.
 
 ---
 

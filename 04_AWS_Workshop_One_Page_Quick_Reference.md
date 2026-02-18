@@ -11,9 +11,9 @@
 | 1 | 5 min | **Create IAM Role** — IAM Console → Roles → Create role → EC2 → Attach `AmazonSSMManagedInstanceCore` + `AmazonS3FullAccess` → Name: `Workshop-EC2-S3-SSM-Role` → Copy Role ARN |
 | 2 | 3 min | **Create Key Pair** — EC2 Console → Key Pairs → Name: `workshop-keypair` → RSA / .pem → Download → `chmod 400` |
 | 3 | 3 min | **Create Security Group** — Name: `Workshop-Internal-Access-SG` → SSH from `YOUR-INTERNAL-CIDR-1` + `YOUR-INTERNAL-CIDR-2` → All traffic from same |
-| 4 | 5 min | **Launch EC2** — Name: `workshop-data-eng-demo` → Amazon Linux 2023 → t3.micro → Attach key pair, SG, IAM role → Public IP: Enable |
-| 5 | 5 min | **Connect via SSH** — `ssh -i workshop-keypair.pem ec2-user@PUBLIC-IP` |
-| 6 | 3 min | **Connect via SSM** — EC2 Console → Select instance → Connect → Session Manager |
+| 4 | 5 min | **Launch EC2** — Name: `workshop-data-eng-demo` → Amazon Linux 2023 → t3.micro → Attach key pair, SG, IAM role → Auto-assign public IP: **Disable** → private subnet |
+| 5 | 5 min | **Connect via SSH** — `ssh -i workshop-keypair.pem ec2-user@PRIVATE-IP` (must be on internal network/VPN) |
+| 6 | 3 min | **Connect via SSM** — EC2 Console → Select instance → Connect → Session Manager (preferred — works without VPN) |
 | 7 | 6 min | **Test AWS CLI** — `aws --version` → `aws sts get-caller-identity` → `aws s3 ls` → Create test file |
 
 ## Part 2: S3 Access Control (30 min)
